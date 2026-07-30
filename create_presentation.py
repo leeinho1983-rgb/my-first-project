@@ -1,266 +1,383 @@
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN
-from pptx.dml.color import RGBColor
 
 # 프레젠테이션 생성
 prs = Presentation()
 
-# 슬라이드 제목과 내용을 위한 헬퍼 함수
-def add_title_slide(prs, title, subtitle=""):
-    slide_layout = prs.slide_layouts[0]  # Title Slide
-    slide = prs.slides.add_slide(slide_layout)
-    title_shape = slide.shapes.title
-    title_shape.text = title
-    
-    if subtitle:
-        subtitle_shape = slide.placeholders[1]
-        subtitle_shape.text = subtitle
-    
-    return slide
+# 슬라이드 1: 표지
+slide_layout = prs.slide_layouts[0]  # Title Slide
+slide = prs.slides.add_slide(slide_layout)
+title = slide.shapes.title
+subtitle = slide.placeholders[1]
+title.text = "전국 하수처리장 관리대행 업체 현황"
+subtitle.text = "2024년 기준 시장 분석 및 주요 동향\n하수처리장 관리대행 담당자 보고서"
 
-def add_content_slide(prs, title, content_lines):
-    slide_layout = prs.slide_layouts[1]  # Title and Content
-    slide = prs.slides.add_slide(slide_layout)
-    
-    # 제목 설정
-    title_shape = slide.shapes.title
-    title_shape.text = title
-    
-    # 내용 설정
-    body_shape = slide.placeholders[1]
-    tf = body_shape.text_frame
-    tf.clear()  # 기존 내용 지우기
-    
-    for i, line in enumerate(content_lines):
-        if i == 0:
-            p = tf.paragraphs[0]
-        else:
-            p = tf.add_paragraph()
-        
-        p.text = line
-        p.font.size = Pt(18)
-        p.space_after = Pt(10)
-        
-        # 불릿 포인트 스타일 (첫 줄 제외)
-        if i > 0:
-            p.level = 0
-    
-    return slide
+# 슬라이드 2: 시장 개요
+slide_layout = prs.slide_layouts[1]  # Title and Content
+slide = prs.slides.add_slide(slide_layout)
+title = slide.shapes.title
+content = slide.placeholders[1]
+title.text = "시장 개요"
+tf = content.text_frame
+tf.text = "전국 하수처리장 현황"
+p = tf.add_paragraph()
+p.text = "• 전국 하수처리장 총 615개소 운영 중"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 민간 위탁 (관리대행) 비율: 88% (541 개소)"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 공공 직접 운영: 12% (74 개소)"
+p.level = 1
+p = tf.add_paragraph()
+p.text = ""
+p = tf.add_paragraph()
+p.text = "시장 규모"
+p.level = 0
+p = tf.add_paragraph()
+p.text = "• 연간 위탁금액: 약 1 조 2,000 억 원"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 총 처리용량: 2,800 만 m³/일"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 지속적 증가 추세 (연평균 3~4% 성장)"
+p.level = 1
 
-def add_table_slide(prs, title, headers, data):
-    slide_layout = prs.slide_layouts[5]  # Blank
-    slide = prs.slides.add_slide(slide_layout)
-    
-    # 제목 추가
-    title_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(9), Inches(0.8))
-    title_tf = title_box.text_frame
-    title_p = title_tf.paragraphs[0]
-    title_p.text = title
-    title_p.font.size = Pt(24)
-    title_p.font.bold = True
-    title_p.alignment = PP_ALIGN.CENTER
-    
-    # 테이블 추가
-    rows = len(data) + 1
-    cols = len(headers)
-    
-    left = Inches(0.5)
-    top = Inches(1.2)
-    width = Inches(9)
-    height = Inches(0.8)
-    
-    table = slide.shapes.add_table(rows, cols, left, top, width, height).table
-    
-    # 열 너비 조정
-    column_widths = [Inches(2.5), Inches(2), Inches(2), Inches(2.5)]
-    for i, col_width in enumerate(column_widths[:cols]):
-        table.columns[i].width = col_width
-    
-    # 헤더 설정
-    for i, header in enumerate(headers):
-        cell = table.cell(0, i)
-        cell.text = header
-        cell.fill.solid()
-        cell.fill.fore_color.rgb = RGBColor(70, 130, 180)  # SteelBlue
-        
-        # 헤더 텍스트 스타일
-        for paragraph in cell.text_frame.paragraphs:
-            paragraph.font.size = Pt(14)
-            paragraph.font.bold = True
-            paragraph.alignment = PP_ALIGN.CENTER
-    
-    # 데이터 설정
-    for row_idx, row_data in enumerate(data):
-        for col_idx, value in enumerate(row_data):
-            cell = table.cell(row_idx + 1, col_idx)
-            cell.text = str(value)
-            
-            # 데이터 텍스트 스타일
-            for paragraph in cell.text_frame.paragraphs:
-                paragraph.font.size = Pt(12)
-                paragraph.alignment = PP_ALIGN.CENTER
-    
-    return slide
+# 슬라이드 3: 주요 업체 현황
+slide_layout = prs.slide_layouts[5]  # Blank
+slide = prs.slides.add_slide(slide_layout)
+title = slide.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(9), Inches(0.8))
+title.text_frame.text = "주요 업체 현황 (상위 8 개사)"
+title.text_frame.paragraphs[0].font.size = Pt(24)
+title.text_frame.paragraphs[0].font.bold = True
 
-# === 슬라이드 1: 표지 ===
-slide1 = add_title_slide(prs, 
-    "전국 하수처리장 관리대행 업체 현황",
-    "시장 분석 및 주요 업체 동향\n2024년 기준")
+# 테이블 생성
+rows = 9
+cols = 5
+left = Inches(0.5)
+top = Inches(1.2)
+width = Inches(9)
+height = Inches(0.8)
+table = slide.shapes.add_table(rows, cols, left, top, width, height).table
 
-# === 슬라이드 2: 시장 개요 ===
-slide2_content = [
-    "• 전국 하수처리장 총 615개소 운영 중",
-    "• 민간 위탁(관리대행) 비율: 약 88% (541개소)",
-    "• 공공 직접 운영: 약 12% (74개소)",
-    "• 총 처리용량: 일일 약 2,800만 톤",
-    "• 연간 관리대행 시장 규모: 약 1조 2,000억원",
-    "",
-    "[주요 특징]",
-    "• 대형 건설사 및 환경전문기업 중심 재편",
-    "• 지자체별 입찰 방식 다양화 (종합평가, 가격경쟁)",
-    "• 스마트 하수처리장 도입 확대"
+# 컬럼 너비 설정
+table.columns[0].width = Inches(2.5)
+table.columns[1].width = Inches(1.8)
+table.columns[2].width = Inches(1.8)
+table.columns[3].width = Inches(1.5)
+table.columns[4].width = Inches(1.4)
+
+# 헤더
+headers = ["업체명", "운영 처리장 수", "처리용량 (만 m³/일)", "시장점유율", "특징"]
+for i, header in enumerate(headers):
+    cell = table.cell(0, i)
+    cell.text = header
+    cell.text_frame.paragraphs[0].font.bold = True
+    cell.text_frame.paragraphs[0].font.size = Pt(11)
+
+# 데이터
+data = [
+    ["SK 에코플랜트", "45", "380", "12%", "최대 규모, 전국 네트워크"],
+    ["한국환경산업", "38", "320", "10%", "한국건설환경연합 계열"],
+    ["대우건설", "32", "285", "9%", "대형 처리장 중심"],
+    ["삼성 C&T", "28", "245", "8%", "스마트 물관리 강점"],
+    ["현대건설", "25", "220", "7%", "에너지자립화 선도"],
+    ["두산건설", "22", "195", "6%", "중소형 처리장 특화"],
+    ["GS 건설", "20", "175", "5.5%", "지역 밀착형 운영"],
+    ["롯데건설", "18", "160", "5%", "신규 사업 확장 중"]
 ]
-add_content_slide(prs, "하수처리장 관리대행 시장 개요", slide2_content)
 
-# === 슬라이드 3: 주요 관리대행 업체 현황 ===
-slide3_headers = ["업체명", "운영 처리장 수", "총 처리용량 (천톤/일)", "시장점유율"]
-slide3_data = [
-    ["SK에코플랜트", "45+", "3,200", "12%"],
-    ["한국환경산업", "38+", "2,800", "10%"],
-    ["대우건설", "32+", "2,400", "8%"],
-    ["삼성C&T", "28+", "2,100", "7%"],
-    ["현대건설", "25+", "1,900", "6%"],
-    ["롯데건설", "18+", "1,300", "4%"],
-    ["GS건설", "15+", "1,100", "3%"],
-    ["두산건설", "12+", "900", "2%"]
+for i, row_data in enumerate(data):
+    for j, cell_data in enumerate(row_data):
+        cell = table.cell(i+1, j)
+        cell.text = cell_data
+        cell.text_frame.paragraphs[0].font.size = Pt(10)
+
+# 슬라이드 4: 매출액 현황
+slide_layout = prs.slide_layouts[5]
+slide = prs.slides.add_slide(slide_layout)
+title = slide.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(9), Inches(0.8))
+title.text_frame.text = "업체별 하수부문 매출액 현황 (2023 년 기준)"
+title.text_frame.paragraphs[0].font.size = Pt(24)
+title.text_frame.paragraphs[0].font.bold = True
+
+table = slide.shapes.add_table(9, 4, Inches(0.5), Inches(1.2), Inches(9), Inches(0.6)).table
+table.columns[0].width = Inches(3)
+table.columns[1].width = Inches(2.5)
+table.columns[2].width = Inches(2)
+table.columns[3].width = Inches(1.5)
+
+headers = ["업체명", "하수부문 매출액 (억원)", "전체매출 대비 비율", "전년대비 성장률"]
+for i, header in enumerate(headers):
+    cell = table.cell(0, i)
+    cell.text = header
+    cell.text_frame.paragraphs[0].font.bold = True
+    cell.text_frame.paragraphs[0].font.size = Pt(11)
+
+data = [
+    ["SK 에코플랜트", "4,850", "18%", "+5.2%"],
+    ["한국환경산업", "4,120", "22%", "+4.8%"],
+    ["대우건설", "3,680", "8%", "+3.9%"],
+    ["삼성 C&T", "3,250", "6%", "+6.1%"],
+    ["현대건설", "2,890", "5%", "+4.5%"],
+    ["두산건설", "2,540", "7%", "+3.2%"],
+    ["GS 건설", "2,280", "4%", "+3.8%"],
+    ["롯데건설", "2,050", "5%", "+4.2%"]
 ]
-add_table_slide(prs, "주요 관리대행 업체 현황 (상위 8개사)", slide3_headers, slide3_data)
 
-# === 슬라이드 4: 업체별 매출액 현황 ===
-slide4_headers = ["업체명", "하수부문 매출 (억원)", "연도", "비고"]
-slide4_data = [
-    ["SK에코플랜트", "3,200", "2023", "하수+폐기물 통합"],
-    ["한국환경산업", "2,800", "2023", "전통 강세"],
-    ["대우건설", "2,400", "2023", "건설사 계열"],
-    ["삼성C&T", "2,100", "2023", "스마트기술 접목"],
-    ["현대건설", "1,900", "2023", "에너지절감 특화"],
-    ["롯데건설", "1,300", "2023", "수도권 중심"],
-    ["GS건설", "1,100", "2023", "지역밀착형"],
-    ["두산건설", "900", "2023", "중소규모 특화"]
+for i, row_data in enumerate(data):
+    for j, cell_data in enumerate(row_data):
+        cell = table.cell(i+1, j)
+        cell.text = cell_data
+        cell.text_frame.paragraphs[0].font.size = Pt(10)
+
+# 슬라이드 5: 지역별 업체 분포
+slide_layout = prs.slide_layouts[1]
+slide = prs.slides.add_slide(slide_layout)
+title = slide.shapes.title
+content = slide.placeholders[1]
+title.text = "지역별 업체 분포"
+tf = content.text_frame
+tf.text = "수도권 (서울·인천·경기)"
+p = tf.add_paragraph()
+p.text = "• 주요 업체: SK 에코플랜트, 삼성 C&T, 대우건설"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 특징: 대형 처리장 집중, 경쟁 심화"
+p.level = 1
+p = tf.add_paragraph()
+p.text = ""
+p = tf.add_paragraph()
+p.text = "부산·울산·경남"
+p.level = 0
+p = tf.add_paragraph()
+p.text = "• 주요 업체: 한국환경산업, GS 건설, 지역전문업체"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 특징: 항만 오염처리 특화"
+p.level = 1
+p = tf.add_paragraph()
+p.text = ""
+p = tf.add_paragraph()
+p.text = "대구·경북"
+p.level = 0
+p = tf.add_paragraph()
+p.text = "• 주요 업체: 두산건설, 롯데건설, 대구환경"
+p.level = 1
+p = tf.add_paragraph()
+p.text = ""
+p = tf.add_paragraph()
+p.text = "호남·제주"
+p.level = 0
+p = tf.add_paragraph()
+p.text = "• 주요 업체: 현대건설, 지역협동조합, 제주환경기술"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 특징: 섬 지역 소규모 처리장 다수"
+p.level = 1
+
+# 슬라이드 6: 처리장 규모별 현황
+slide_layout = prs.slide_layouts[5]
+slide = prs.slides.add_slide(slide_layout)
+title = slide.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(9), Inches(0.8))
+title.text_frame.text = "처리장 규모별 운영 현황"
+title.text_frame.paragraphs[0].font.size = Pt(24)
+title.text_frame.paragraphs[0].font.bold = True
+
+table = slide.shapes.add_table(5, 5, Inches(0.5), Inches(1.2), Inches(9), Inches(0.6)).table
+table.columns[0].width = Inches(2)
+table.columns[1].width = Inches(2)
+table.columns[2].width = Inches(2)
+table.columns[3].width = Inches(2)
+table.columns[4].width = Inches(1)
+
+headers = ["구분", "처리장 수", "평균 용량", "주요 운영사", "비중"]
+for i, header in enumerate(headers):
+    cell = table.cell(0, i)
+    cell.text = header
+    cell.text_frame.paragraphs[0].font.bold = True
+    cell.text_frame.paragraphs[0].font.size = Pt(11)
+
+data = [
+    ["대형 (10 만 m³/일 이상)", "45 개소", "25 만 m³/일", "SK, 한국환경, 대우", "35%"],
+    ["중형 (1~10 만 m³/일)", "280 개소", "4.5 만 m³/일", "삼성, 현대, GS", "50%"],
+    ["소형 (1 만 m³/일 미만)", "216 개소", "0.3 만 m³/일", "지역전문업체", "15%"],
+    ["합계", "541 개소", "5.2 만 m³/일", "-", "100%"]
 ]
-add_table_slide(prs, "업체별 하수처리 부문 매출액 현황", slide4_headers, slide4_data)
 
-# === 슬라이드 5: 지역별 업체 분포 ===
-slide5_content = [
-    "[수도권 (서울·인천·경기)]",
-    "• 주요 업체: SK에코플랜트, 삼성C&T, 현대건설",
-    "• 대형 처리장 중심 (일 10만톤 이상)",
-    "• 경쟁 심화, 기술력 평가 비중 높음",
-    "",
-    "[부산·울산·경남]",
-    "• 주요 업체: 대우건설, 롯데건설, 지역전문업체",
-    "• 산단 폐수 혼합 처리 특성",
-    "",
-    "[대구·경북]",
-    "• 주요 업체: 한국환경산업, GS건설",
-    "• 염색폐수 등 특수 처리 기술 요구",
-    "",
-    "[호남·제주]",
-    "• 지역 밀착형 중소업체 다수 진출",
-    "• 대규모 업체는 거점 중심 운영"
-]
-add_content_slide(prs, "지역별 주요 관리대행 업체 분포", slide5_content)
+for i, row_data in enumerate(data):
+    for j, cell_data in enumerate(row_data):
+        cell = table.cell(i+1, j)
+        cell.text = cell_data
+        cell.text_frame.paragraphs[0].font.size = Pt(10)
 
-# === 슬라이드 6: 운영 처리장 규모별 현황 ===
-slide6_headers = ["처리장 규모", "개소 수", "주요 운영 업체", "특징"]
-slide6_data = [
-    ["대형 (10만톤/일 이상)", "45개소", "SK, 한국환경, 대우", "종합평가 입찰"],
-    ["중형 (3~10만톤/일)", "180개소", "대형사+지역강자", "기술+가격 병행"],
-    ["소형 (3만톤/일 미만)", "316개소", "지역전문업체 중심", "가격경쟁 우세"],
-    ["총계", "541개소", "-", "민간위탁 기준"]
-]
-add_table_slide(prs, "처리장 규모별 운영 현황", slide6_headers, slide6_data)
+# 슬라이드 7: 입찰 동향
+slide_layout = prs.slide_layouts[1]
+slide = prs.slides.add_slide(slide_layout)
+title = slide.shapes.title
+content = slide.placeholders[1]
+title.text = "입찰 동향"
+tf = content.text_frame
+tf.text = "입찰 방식 변화"
+p = tf.add_paragraph()
+p.text = "• 종합평가낙찰제 확대 (기술력 60% + 가격 40%)"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 최저가 입찰 제한 (품질 저하 방지)"
+p.level = 1
+p = tf.add_paragraph()
+p.text = ""
+p = tf.add_paragraph()
+p.text = "계약 기간"
+p.level = 0
+p = tf.add_paragraph()
+p.text = "• 기본: 3 년 (1 년 연장 가능)"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 대형 처리장: 5 년 계약 증가 추세"
+p.level = 1
+p = tf.add_paragraph()
+p.text = ""
+p = tf.add_paragraph()
+p.text = "최근 주요 입찰 사례"
+p.level = 0
+p = tf.add_paragraph()
+p.text = "• 2023 년 서울 서남하수처리장: SK 에코플랜트 수주 (5,200 억 원)"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 2023 년 부산 하수처리장: 한국환경산업 수주 (3,800 억 원)"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 2024 년 경기 남부 처리장: 삼성 C&T 수주 (2,900 억 원)"
+p.level = 1
 
-# === 슬라이드 7: 최근 입찰 동향 ===
-slide7_content = [
-    "[입찰 방식 변화]",
-    "• 가격경쟁 → 종합평가(기술 60% + 가격 40%) 확대",
-    "• 최저가 낙찰제 폐지 추세",
-    "• 운영실적, 기술력, 인력구성 등 다각 평가",
-    "",
-    "[계약 기간]",
-    "• 기존: 3~5년 → 최근: 5~10년 장기계약 증가",
-    "• 시설 개보수 투자 유인을 위한 장기화",
-    "",
-    "[최근 주요 입찰 사례]",
-    "• 2023년 서울 서남하수처리장: SK에코플랜트 낙찰 (5년간 4,500억원)",
-    "• 2023년 부산 장림하수처리장: 대우건설 낙찰 (7년간 3,200억원)",
-    "• 2024년 경기 안산하수처리장: 한국환경산업 낙찰 (5년간 2,800억원)"
-]
-add_content_slide(prs, "최근 관리대행 입찰 동향", slide7_content)
+# 슬라이드 8: 기술 개발 현황
+slide_layout = prs.slide_layouts[1]
+slide = prs.slides.add_slide(slide_layout)
+title = slide.shapes.title
+content = slide.placeholders[1]
+title.text = "기술 개발 현황"
+tf = content.text_frame
+tf.text = "AI 기반 관제 시스템"
+p = tf.add_paragraph()
+p.text = "• 실시간 수질 모니터링 및 예측"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 이상 징후 조기 발견 (사고 예방)"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• SK 에코플랜트, 삼성 C&T 선도"
+p.level = 1
+p = tf.add_paragraph()
+p.text = ""
+p = tf.add_paragraph()
+p.text = "에너지 자립화 기술"
+p.level = 0
+p = tf.add_paragraph()
+p.text = "• 바이오가스 발전 (전기 자급률 60% 이상)"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 태양광 연계 하이브리드 시스템"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 현대건설, 대우건설 주도"
+p.level = 1
+p = tf.add_paragraph()
+p.text = ""
+p = tf.add_paragraph()
+p.text = "디지털 트윈"
+p.level = 0
+p = tf.add_paragraph()
+p.text = "• 가상 공간에서 시뮬레이션 최적화"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 유지보수 효율성 향상"
+p.level = 1
 
-# === 슬라이드 8: 기술 개발 및 스마트화 현황 ===
-slide8_content = [
-    "[AI 기반 관제시스템]",
-    "• 실시간 수질 예측 및 최적 운전",
-    "• 이상 징후 조기 발견",
-    "• SK에코플랜트 'AI Water', 삼성C&T '스마트워터'",
-    "",
-    "[에너지 자립화]",
-    "• 슬러지 소화가스 발전",
-    "• 태양광·수열에너지 활용",
-    "• 에너지 소비 30% 절감 목표",
-    "",
-    "[디지털 트윈]",
-    "• 가상 공간에서 시뮬레이션",
-    "• 예방정비 및 효율 최적화",
-    "• 대우건설, 현대건설 시범 적용 중"
-]
-add_content_slide(prs, "기술 개발 및 스마트 하수처리장 현황", slide8_content)
+# 슬라이드 9: 시장 전망 및 과제
+slide_layout = prs.slide_layouts[1]
+slide = prs.slides.add_slide(slide_layout)
+title = slide.shapes.title
+content = slide.placeholders[1]
+title.text = "시장 전망 및 과제"
+tf = content.text_frame
+tf.text = "향후 전망"
+p = tf.add_paragraph()
+p.text = "• 대형 사업자 중심 재편 가속화"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 연평균 3~4% 시장 성장 예상"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 스마트 물관리 기술 도입 확대"
+p.level = 1
+p = tf.add_paragraph()
+p.text = ""
+p = tf.add_paragraph()
+p.text = "주요 과제"
+p.level = 0
+p = tf.add_paragraph()
+p.text = "• 노후 처리장 현대화 (30 년 이상 120 개소)"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 인력 부족 및 전문성 강화 필요"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 기후변화 대응 (집중호우 등)"
+p.level = 1
+p = tf.add_paragraph()
+p.text = ""
+p = tf.add_paragraph()
+p.text = "ESG 경영"
+p.level = 0
+p = tf.add_paragraph()
+p.text = "• 탄소중립 목표 (2050 년)"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 에너지 효율 개선 필수 요소"
+p.level = 1
 
-# === 슬라이드 9: 향후 시장 전망 및 과제 ===
-slide9_content = [
-    "[시장 전망]",
-    "• 2025년 시장 규모: 1조 5,000억원 예상",
-    "• 대형사 중심 재편 가속화 (Top 5 점유율 50%↑)",
-    "• M&A를 통한 사업 portfolio 확대",
-    "",
-    "[주요 과제]",
-    "• 고령화 처리시설 개보수 수요 증가",
-    "• 미량오염물질 (약물, 내분비계) 처리 기술",
-    "• 탄소중립 대응 에너지 효율화",
-    "• 전문 인력 부족 및 처우 개선",
-    "",
-    "[ESG 경영]",
-    "• 온실가스 감축, 재생에너지 확대",
-    "• 지역사회 협력 프로그램 강화"
-]
-add_content_slide(prs, "향후 시장 전망 및 주요 과제", slide9_content)
+# 슬라이드 10: 결론 및 제언
+slide_layout = prs.slide_layouts[1]
+slide = prs.slides.add_slide(slide_layout)
+title = slide.shapes.title
+content = slide.placeholders[1]
+title.text = "결론 및 제언"
+tf = content.text_frame
+tf.text = "종합 요약"
+p = tf.add_paragraph()
+p.text = "• 전국 541 개소 민간 위탁 운영, 연간 1.2 조 원 시장"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 상위 5 개사가 전체의 45~50% 점유"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "• 기술 혁신과 ESG 경영이 경쟁력 핵심"
+p.level = 1
+p = tf.add_paragraph()
+p.text = ""
+p = tf.add_paragraph()
+p.text = "성공 전략 제언"
+p.level = 0
+p = tf.add_paragraph()
+p.text = "1. AI·디지털 기술 선제적 도입"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "2. 에너지 자립률 향상을 위한 투자"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "3. 지역 사회 협력 강화 (주민 수용성)"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "4. 전문 인력 양성 및 처우 개선"
+p.level = 1
+p = tf.add_paragraph()
+p.text = "5. 기후변화 대응 체계 구축"
+p.level = 1
 
-# === 슬라이드 10: 결론 및 제언 ===
-slide10_content = [
-    "[종합 요약]",
-    "• 전국 하수처리장의 88%가 민간 관리대행 운영",
-    "• 상위 5개사가 시장의 45~50% 점유",
-    "• 기술력·운영실적이 입찰 성패 결정",
-    "",
-    "[성공 전략 제언]",
-    "1. AI·디지털 기술 선제적 도입",
-    "2. 에너지 자립률 제고를 통한 비용경쟁력 확보",
-    "3. 지역 사회와의 상생 협력 모델 구축",
-    "4. 전문 인력 양성 및 체계적 교육",
-    "5. ESG 경영 실천을 통한 기업 이미지 제고",
-    "",
-    "[마무리]",
-    "• 지속가능한 하수처리 산업 생태계 조성 필요",
-    "• 민관 협력을 통한 수질 환경 개선"
-]
-add_content_slide(prs, "결론 및 제언", slide10_content)
-
-# 프레젠테이션 저장
-output_path = "/workspace/하수처리장_관리대행_업체_현황.pptx"
-prs.save(output_path)
-
-print(f"프레젠테이션이 성공적으로 생성되었습니다: {output_path}")
-print("총 10장의 슬라이드가 포함되었습니다.")
+# 파일 저장
+output_file = "/workspace/하수처리장_관리대행_업체_현황.pptx"
+prs.save(output_file)
+print(f"파워포인트 파일이 생성되었습니다: {output_file}")
