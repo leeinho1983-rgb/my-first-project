@@ -1,1 +1,36 @@
-Nothing should be ignored in this case. The added and modified files appear to be regular Python source files and PowerPoint presentation files, which are legitimate project files that should be tracked in version control. No build artifacts, dependencies, or temporary files are present in the changes.
+```gitignore
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
+
+# Dependencies
+.venv/
+venv/
+node_modules/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+```
