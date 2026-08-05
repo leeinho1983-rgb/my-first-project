@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 화려한 지뢰찾기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 배경 애니메이션 */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: moveBackground 20s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes moveBackground {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-50px, -50px); }
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
+                        0 0 40px rgba(102, 126, 234, 0.5);
+            backdrop-filter: blur(10px);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #667eea, 0 0 30px #764ba2; }
+            to { text-shadow: 0 0 30px #764ba2, 0 0 40px #667eea; }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            text-align: center;
+            flex: 1;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-box:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .difficulty-select {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.6);
+        }
+
+        .difficulty-btn.active {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .grid {
+            display: grid;
+            gap: 5px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(145deg, #e6e6e6, #ffffff);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .cell:hover:not(.revealed):not(.flagged) {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.6);
+        }
+
+        .cell.revealed {
+            background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+            cursor: default;
+            animation: reveal 0.3s ease;
+        }
+
+        @keyframes reveal {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .cell.mine {
+            background: linear-gradient(145deg, #ff6b6b, #ee5a5a);
+            animation: explode 0.5s ease;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .cell.flagged {
+            background: linear-gradient(145deg, #ffd93d, #ffcd3d);
+        }
+
+        .cell[data-number="1"] { color: #3498db; }
+        .cell[data-number="2"] { color: #2ecc71; }
+        .cell[data-number="3"] { color: #e74c3c; }
+        .cell[data-number="4"] { color: #9b59b6; }
+        .cell[data-number="5"] { color: #f39c12; }
+        .cell[data-number="6"] { color: #1abc9c; }
+        .cell[data-number="7"] { color: #34495e; }
+        .cell[data-number="8"] { color: #7f8c8d; }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .control-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .message {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .message.win {
+            display: block;
+            background: linear-gradient(135deg, #56ab2f, #a8e063);
+            color: white;
+        }
+
+        .message.lose {
+            display: block;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: white;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: particleFall 3s linear forwards;
+        }
+
+        @keyframes particleFall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="game-container">
+        <h1>💣 화려한 지뢰찾기</h1>
+        
+        <div class="difficulty-select">
+            <button class="difficulty-btn active" data-difficulty="easy">쉬움</button>
+            <button class="difficulty-btn" data-difficulty="medium">보통</button>
+            <button class="difficulty-btn" data-difficulty="hard">어려움</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">💣 지뢰</div>
+                <div class="stat-value" id="mineCount">10</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">🚩 깃발</div>
+                <div class="stat-value" id="flagCount">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">⏱️ 시간</div>
+                <div class="stat-value" id="timer">0</div>
+            </div>
+        </div>
+
+        <div class="grid" id="grid"></div>
+
+        <div class="message" id="message"></div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="resetGame()">🔄 새로고침</button>
+        </div>
+    </div>
+
+    <script>
+        const difficulties = {
+            easy: { rows: 9, cols: 9, mines: 10 },
+            medium: { rows: 16, cols: 16, mines: 40 },
+            hard: { rows: 16, cols: 30, mines: 99 }
+        };
+
+        let currentDifficulty = 'easy';
+        let board = [];
+        let revealed = [];
+        let flagged = [];
+        let gameOver = false;
+        let firstClick = true;
+        let timerInterval = null;
+        let timeElapsed = 0;
+        let flagsUsed = 0;
+
+        function init() {
+            setupDifficultyButtons();
+            resetGame();
+        }
+
+        function setupDifficultyButtons() {
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentDifficulty = btn.dataset.difficulty;
+                    resetGame();
+                });
+            });
+        }
+
+        function resetGame() {
+            const config = difficulties[currentDifficulty];
+            board = [];
+            revealed = [];
+            flagged = [];
+            gameOver = false;
+            firstClick = true;
+            timeElapsed = 0;
+            flagsUsed = 0;
+
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            document.getElementById('timer').textContent = '0';
+            document.getElementById('mineCount').textContent = config.mines;
+            document.getElementById('flagCount').textContent = '0';
+            document.getElementById('message').className = 'message';
+            document.getElementById('message').textContent = '';
+
+            createBoard(config.rows, config.cols);
+        }
+
+        function createBoard(rows, cols) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            grid.style.gridTemplateColumns = `repeat(${cols}, 40px)`;
+
+            for (let i = 0; i < rows; i++) {
+                board[i] = [];
+                revealed[i] = [];
+                flagged[i] = [];
+                for (let j = 0; j < cols; j++) {
+                    board[i][j] = 0;
+                    revealed[i][j] = false;
+                    flagged[i][j] = false;
+
+                    const cell = document.createElement('button');
+                    cell.className = 'cell';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    cell.addEventListener('click', handleClick);
+                    cell.addEventListener('contextmenu', handleRightClick);
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function placeMines(excludeRow, excludeCol) {
+            const config = difficulties[currentDifficulty];
+            let minesPlaced = 0;
+
+            while (minesPlaced < config.mines) {
+                const row = Math.floor(Math.random() * config.rows);
+                const col = Math.floor(Math.random() * config.cols);
+
+                if (board[row][col] !== -1 && 
+                    !(Math.abs(row - excludeRow) <= 1 && Math.abs(col - excludeCol) <= 1)) {
+                    board[row][col] = -1;
+                    minesPlaced++;
+                }
+            }
+
+            for (let i = 0; i < config.rows; i++) {
+                for (let j = 0; j < config.cols; j++) {
+                    if (board[i][j] !== -1) {
+                        board[i][j] = countAdjacentMines(i, j);
+                    }
+                }
+            }
+        }
+
+        function countAdjacentMines(row, col) {
+            const config = difficulties[currentDifficulty];
+            let count = 0;
+
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    const newRow = row + i;
+                    const newCol = col + j;
+                    if (newRow >= 0 && newRow < config.rows && 
+                        newCol >= 0 && newCol < config.cols && 
+                        board[newRow][newCol] === -1) {
+                        count++;
+                    }
+                }
+            }
+
+            return count;
+        }
+
+        function handleClick(e) {
+            if (gameOver) return;
+
+            const row = parseInt(e.target.dataset.row);
+            const col = parseInt(e.target.dataset.col);
+
+            if (flagged[row][col] || revealed[row][col]) return;
+
+            if (firstClick) {
+                firstClick = false;
+                placeMines(row, col);
+                startTimer();
+            }
+
+            revealCell(row, col);
+            checkWin();
+        }
+
+        function handleRightClick(e) {
+            e.preventDefault();
+            if (gameOver) return;
+
+            const row = parseInt(e.target.dataset.row);
+            const col = parseInt(e.target.dataset.col);
+
+            if (revealed[row][col]) return;
+
+            flagged[row][col] = !flagged[row][col];
+            e.target.classList.toggle('flagged');
+            e.target.textContent = flagged[row][col] ? '🚩' : '';
+
+            flagsUsed += flagged[row][col] ? 1 : -1;
+            document.getElementById('flagCount').textContent = flagsUsed;
+        }
+
+        function revealCell(row, col) {
+            const config = difficulties[currentDifficulty];
+            if (row < 0 || row >= config.rows || col < 0 || col >= config.cols) return;
+            if (revealed[row][col] || flagged[row][col]) return;
+
+            revealed[row][col] = true;
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            cell.classList.add('revealed');
+
+            if (board[row][col] === -1) {
+                cell.classList.add('mine');
+                cell.textContent = '💣';
+                endGame(false);
+                return;
+            }
+
+            if (board[row][col] > 0) {
+                cell.textContent = board[row][col];
+                cell.dataset.number = board[row][col];
+            } else {
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        revealCell(row + i, col + j);
+                    }
+                }
+            }
+        }
+
+        function checkWin() {
+            const config = difficulties[currentDifficulty];
+            let revealedCount = 0;
+
+            for (let i = 0; i < config.rows; i++) {
+                for (let j = 0; j < config.cols; j++) {
+                    if (revealed[i][j]) revealedCount++;
+                }
+            }
+
+            if (revealedCount === config.rows * config.cols - config.mines) {
+                endGame(true);
+            }
+        }
+
+        function endGame(won) {
+            gameOver = true;
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+
+            const message = document.getElementById('message');
+            if (won) {
+                message.textContent = '🎉 축하합니다! 승리하셨습니다! 🎉';
+                message.className = 'message win';
+                createParticles();
+            } else {
+                message.textContent = '💥 게임 오버! 지뢰를踏았습니다! 💥';
+                message.className = 'message lose';
+                revealAllMines();
+            }
+        }
+
+        function revealAllMines() {
+            const config = difficulties[currentDifficulty];
+            for (let i = 0; i < config.rows; i++) {
+                for (let j = 0; j < config.cols; j++) {
+                    if (board[i][j] === -1) {
+                        const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                        cell.classList.add('revealed', 'mine');
+                        cell.textContent = '💣';
+                    }
+                }
+            }
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeElapsed++;
+                document.getElementById('timer').textContent = timeElapsed;
+            }, 1000);
+        }
+
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe'];
+
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    particle.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    particlesContainer.appendChild(particle);
+
+                    setTimeout(() => particle.remove(), 4000);
+                }, i * 50);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
