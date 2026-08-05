@@ -1,3 +1,33 @@
-(minesweeper.html is a source file, so no ignores needed)
+```
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-(empty)
+# Environment
+.venv/
+venv/
+.env
+.env.local
+*.env.*
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+
+# Editors
+.vscode/
+.idea/
+
+# Dependencies and build artifacts
+node_modules/
+dist/
+build/
+.mypy_cache/
+.pytest_cache/
+.coverage
+coverage/
+htmlcov/
+```
